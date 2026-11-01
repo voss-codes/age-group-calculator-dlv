@@ -1,3 +1,4 @@
+🇩🇪 [Deutsche Version](README.de.md)
 # age-group-calculator-dlv
 Altersklassenrechner Laufsport nach DLV-Wettkampfordnung
 
