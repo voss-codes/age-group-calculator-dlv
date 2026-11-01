@@ -1,0 +1,125 @@
+<style>
+    .akr-card, .akr-card * { box-sizing: border-box; }
+    .akr-card {
+        font-family: Arial, Helvetica, sans-serif;
+        background: #fff;
+        max-width: 480px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 28px;
+        border-radius: 10px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+    }
+    .akr-card h2 { margin-top: 0; font-size: 1.5em; color: #1a3a5c; text-align: center !important; }
+    .akr-card label { display: block; margin: 16px 0 6px; font-weight: bold; }
+    .akr-card input, .akr-card select {
+        width: 100%;
+        padding: 10px;
+        font-size: 1.1em;
+        border: 1px solid #b5bfcc;
+        border-radius: 6px;
+        background: #fff;
+    }
+    .akr-card .akr-ausgabe {
+        width: 100%;
+        min-height: 90px;
+        padding: 14px;
+        border: 1px solid #dd3333;
+        border-radius: 6px;
+        background: #dd3333;
+        color: #FFFFFF;
+        line-height: 1.4;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    .akr-card .akr-klasse { font-size: 1.4em; font-weight: bold; }
+    .akr-card .akr-alter { font-size: 1em; margin-top: 6px; }
+    .akr-card .akr-platzhalter { color: #FFFFFF; font-size: 1em; font-weight: normal; }
+    .akr-card .akr-info { font-size: 0.85em; color: #555; margin-top: 20px; line-height: 1.5; }
+    .akr-card .akr-error { color: #FFFFFF !important; }
+</style>
+
+<div class="akr-card">
+    <h2>Altersklassenrechner Laufsport</h2>
+
+    <label for="akr-jahr">Wettkampfjahr</label>
+    <input type="number" id="akr-jahr" min="1900" max="2100">
+
+    <label for="akr-geschlecht">Geschlecht</label>
+    <select id="akr-geschlecht">
+        <option value="">Bitte auswählen</option>
+        <option value="M">Männlich</option>
+        <option value="W">Weiblich</option>
+    </select>
+
+    <label for="akr-datum">Geburtsdatum</label>
+    <input type="date" id="akr-datum">
+
+    <label>Altersklasse</label>
+    <div class="akr-ausgabe" id="akr-ausgabe" aria-live="polite">
+        <span class="akr-platzhalter">Bitte Geschlecht und Geburtsdatum eingeben</span>
+    </div>
+
+    <div class="akr-info">
+        Berechnung nach DLV-Wettkampfordnung: Maßgeblich ist das im Wettkampfjahr erreichte Alter
+        (Wettkampfjahr minus Geburtsjahr), unabhängig vom genauen Geburtstag.
+        Für verbindliche Meldungen bitte die aktuelle Ausschreibung bzw. Wettkampfordnung beachten.
+    </div>
+</div>
+
+<script>
+(function () {
+    var jahrFeld = document.getElementById('akr-jahr');
+    var geschlechtFeld = document.getElementById('akr-geschlecht');
+    var datumFeld = document.getElementById('akr-datum');
+    var ausgabe = document.getElementById('akr-ausgabe');
+    var platzhalter = '<span class="akr-platzhalter">Bitte Geschlecht und Geburtsdatum eingeben</span>';
+
+    jahrFeld.value = new Date().getFullYear();
+
+    function ermittleAltersklasse(alter, g) {
+        var m = (g === 'M');
+        if (alter < 0) return null;
+        if (alter <= 7)  return m ? 'Kinder U8 männlich (M7)'  : 'Kinder U8 weiblich (W7)';
+        if (alter <= 9)  return m ? 'Kinder U10 männlich (M9)' : 'Kinder U10 weiblich (W9)';
+        if (alter <= 11) return m ? 'Kinder U12 männlich (M11)' : 'Kinder U12 weiblich (W11)';
+        if (alter <= 13) return m ? 'Kinder U14 männlich (M13)' : 'Kinder U14 weiblich (W13)';
+        if (alter <= 15) return m ? 'Jugend U16 männlich (M15)' : 'Jugend U16 weiblich (W15)';
+        if (alter <= 17) return m ? 'Jugend U18 männlich (MJU18)' : 'Jugend U18 weiblich (WJU18)';
+        if (alter <= 19) return m ? 'Junioren U20 (MJU20)' : 'Juniorinnen U20 (WJU20)';
+        if (alter <= 22) return m ? 'Männer U23 (MU23)' : 'Frauen U23 (WU23)';
+        if (alter < 30)  return m ? 'Männer (Aktive)' : 'Frauen (Aktive)';
+        var klasse = Math.floor(alter / 5) * 5;
+        return (m ? 'M' : 'W') + klasse + ' (Masters)';
+    }
+
+    function berechne() {
+        var wj = parseInt(jahrFeld.value, 10);
+        var g = geschlechtFeld.value;
+        var wert = datumFeld.value;
+
+        if (!wert || isNaN(wj) || !g) {
+            ausgabe.innerHTML = platzhalter;
+            return;
+        }
+
+        var geburtsjahr = parseInt(wert.split('-')[0], 10);
+        var alter = wj - geburtsjahr;
+        var ergebnis = ermittleAltersklasse(alter, g);
+
+        if (ergebnis === null) {
+            ausgabe.innerHTML = '<div class="akr-klasse akr-error">Ungültige Eingabe</div>' +
+                '<div class="akr-alter akr-error">Das Geburtsjahr liegt nach dem Wettkampfjahr.</div>';
+        } else {
+            ausgabe.innerHTML = '<div class="akr-klasse"></div><div class="akr-alter"></div>';
+            ausgabe.querySelector('.akr-klasse').textContent = ergebnis;
+            ausgabe.querySelector('.akr-alter').textContent = 'Alter im Wettkampfjahr: ' + alter + ' Jahre';
+        }
+    }
+
+    datumFeld.addEventListener('input', berechne);
+    datumFeld.addEventListener('change', berechne);
+    jahrFeld.addEventListener('input', berechne);
+    geschlechtFeld.addEventListener('change', berechne);
+})();
+</script>
