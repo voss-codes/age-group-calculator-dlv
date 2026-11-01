@@ -1,3 +1,4 @@
+🇬🇧 [English version](README.md)
 # age-group-calculator-dlv
 Age group calculator for running according to German DLV rules
 
